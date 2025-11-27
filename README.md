@@ -24,7 +24,6 @@ The Ridgepole integration is configurable via envionment variables.
 
 I recommend using only fast_schema_dumper in local development environments, and configuring `FAST_SCHEMA_DUMPER_MODE=verify` in CI setups.
 
-
 ## Installation
 
 Install the gem and add to the application's Gemfile by executing:
@@ -48,3 +47,7 @@ To install this gem onto your local machine, run `bundle exec rake install`. To 
 ## Contributing
 
 Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/fast_schema_dumper.
+
+## Releasing
+
+Kick the GitHub Actions workflow.
