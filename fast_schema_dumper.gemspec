@@ -4,7 +4,7 @@ Gem::Specification.new do |spec|
   spec.name = "fast_schema_dumper"
   spec.version = FastSchemaDumper::VERSION
   spec.authors = ["Daisuke Aritomo"]
-  spec.email = ["osyoyu@osyoyu.com"]
+  spec.email = ["osyoyu@osyoyu.com", "over.rye@gmail.com", "moznion@mail.moznion.net"]
 
   spec.summary = "A fast alternative to ActiveRecord::SchemaDumper"
   spec.homepage = "https://github.com/osyoyu/fast_schema_dumper"
