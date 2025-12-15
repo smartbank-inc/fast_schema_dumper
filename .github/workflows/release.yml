@@ -12,7 +12,7 @@ jobs:
       id-token: write
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
           persist-credentials: false
 
@@ -21,9 +21,9 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libyaml-dev
 
-      - uses: ruby/setup-ruby@v1
+      - uses: ruby/setup-ruby@ac793fdd38cc468a4dd57246fa9d0e868aba9085 # v1.270.0
         with:
           ruby-version: '3.4'
           bundler-cache: true
 
-      - uses: rubygems/release-gem@v1
+      - uses: rubygems/release-gem@1c162a739e8b4cb21a676e97b087e8268d8fc40b # v1.1.2
