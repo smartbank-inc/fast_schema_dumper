@@ -1,4 +1,4 @@
 #!/usr/bin/env ruby
 
-require 'fast_schema_dumper/cli'
+require "fast_schema_dumper/cli"
 exit FastSchemaDumper::CLI.run(ARGV)
