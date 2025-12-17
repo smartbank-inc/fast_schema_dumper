@@ -46,7 +46,7 @@ To install this gem onto your local machine, run `bundle exec rake install`. To 
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/fast_schema_dumper.
+Bug reports and pull requests are welcome on GitHub at https://github.com/smartbank-inc/fast_schema_dumper.
 
 ## Releasing
 
