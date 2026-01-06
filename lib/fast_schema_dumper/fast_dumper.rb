@@ -1,4 +1,5 @@
 require 'json'
+require 'bigdecimal'
 
 module FastSchemaDumper
   class SchemaDumper
@@ -486,6 +487,13 @@ module FastSchemaDumper
       when 'datetime', 'timestamp'
         return '-> { "CURRENT_TIMESTAMP" }' if default == 'CURRENT_TIMESTAMP'
         "\"#{default}\""
+      when 'decimal'
+        # Same as Rails: activemodel/lib/active_model/type/decimal.rb#type_cast_for_schema
+        BigDecimal(default).to_s.inspect
+      when 'float', 'double'
+        # Same as Rails: activemodel/lib/active_model/type/float.rb#type_cast_for_schema
+        # MySQL double is mapped to Type::Float in Rails
+        default.to_f.inspect
       when 'json'
         default == "'[]'" ? '[]' : '{}'
       else
