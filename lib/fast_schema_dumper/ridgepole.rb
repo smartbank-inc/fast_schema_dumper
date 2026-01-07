@@ -1,4 +1,4 @@
-require_relative './fast_dumper'
+require_relative 'fast_dumper'
 
 # Loading this file will overwrite `Ridgepole::Dumper.dump`.
 
