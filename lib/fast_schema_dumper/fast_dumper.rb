@@ -77,7 +77,7 @@ module FastSchemaDumper
           # include
           # nulls_not_distinct
           # type
-          comment: idx['INDEX_COMMENT'],
+          comment: idx['INDEX_COMMENT']
           # enabled
         }
         hash[idx['TABLE_NAME']][idx['INDEX_NAME']][:columns] << idx['COLUMN_NAME']
@@ -99,7 +99,7 @@ module FastSchemaDumper
     ").each_with_object({}) do |row, hash|
         hash[row['TABLE_NAME']] = {
           collation: row['TABLE_COLLATION'],
-          comment: row['TABLE_COMMENT'],
+          comment: row['TABLE_COMMENT']
         }
       end
 
@@ -187,7 +187,7 @@ module FastSchemaDumper
           column: fk['COLUMN_NAME'],
           referenced_table: fk['REFERENCED_TABLE_NAME'],
           referenced_column: fk['REFERENCED_COLUMN_NAME'],
-          constraint_name: fk['CONSTRAINT_NAME'],
+          constraint_name: fk['CONSTRAINT_NAME']
         }
       end
 
@@ -197,7 +197,7 @@ module FastSchemaDumper
           all_foreign_keys << {
             table_name: table_name,
             constraint_name: constraint_name,
-            fk_data: fk_data,
+            fk_data: fk_data
           }
         end
       end
@@ -217,12 +217,10 @@ module FastSchemaDumper
         if fk[:fk_data][:column] != inferred_column
           # Column name is custom, need to specify it
           fk_line += ", column: \"#{fk[:fk_data][:column]}\""
-        else
+        elsif !fk[:fk_data][:constraint_name].start_with?("fk_rails_")
           # Column matches default, check if constraint name is custom
           # Rails generates constraint names starting with "fk_rails_"
-          if !fk[:fk_data][:constraint_name].start_with?("fk_rails_")
-            fk_line += ", name: \"#{fk[:fk_data][:constraint_name]}\""
-          end
+          fk_line += ", name: \"#{fk[:fk_data][:constraint_name]}\""
         end
 
         @output << fk_line
@@ -231,7 +229,7 @@ module FastSchemaDumper
       stream.print @output.join("\n")
     end
 
-  private
+    private
 
     def escape_string(str)
       str.gsub("\\", "\\\\\\\\").gsub('"', '\"').gsub("\n", "\\n").gsub("\r", "\\r").gsub("\t", "\\t")
@@ -317,7 +315,7 @@ module FastSchemaDumper
       # Indexes
       # Rails orders indexes lexicographically by their column arrays
       # Example: ["a", "b"] < ["a"] < ["b", "c"] < ["b"] < ["d"]
-      sorted_indexes = indexes.reject { |name, _| name == 'PRIMARY' }.sort_by do |index_name, index_data|
+      sorted_indexes = indexes.except('PRIMARY').sort_by do |index_name, index_data|
         # Create an array padded with high values for comparison
         # This ensures that missing columns sort after existing ones
         max_cols = indexes.values.map { |data| data[:columns].size }.max || 1
@@ -349,7 +347,7 @@ module FastSchemaDumper
           end
         end
 
-        check_clause.gsub!(/\\'/, "'") # don't escape single quotes for compatibility with the original dumper
+        check_clause.gsub!("\\'", "'") # don't escape single quotes for compatibility with the original dumper
 
         ck_line = "  t.check_constraint \"#{check_clause}\""
 
@@ -370,7 +368,7 @@ module FastSchemaDumper
 
       # limit (varchar, char)
       if ['varchar', 'char'].include?(column['DATA_TYPE']) && column['CHARACTER_MAXIMUM_LENGTH'] &&
-         column['CHARACTER_MAXIMUM_LENGTH'] != 255
+          column['CHARACTER_MAXIMUM_LENGTH'] != 255
         col_def += ", limit: #{column['CHARACTER_MAXIMUM_LENGTH']}"
       end
 
@@ -476,7 +474,7 @@ module FastSchemaDumper
 
       # Special handling for boolean (tinyint(1))
       if column_type == 'tinyint(1)'
-        return default == '1' ? 'true' : 'false'
+        return (default == '1') ? 'true' : 'false'
       end
 
       case data_type
@@ -495,19 +493,19 @@ module FastSchemaDumper
         # MySQL double is mapped to Type::Float in Rails
         default.to_f.inspect
       when 'json'
-        default == "'[]'" ? '[]' : '{}'
+        (default == "'[]'") ? '[]' : '{}'
       else
-        default =~ /^'.*'$/ ? "\"#{default[1..-2]}\"" : default
+        /^'.*'$/.match?(default) ? "\"#{default[1..-2]}\"" : default
       end
     end
 
     def format_index(index_name, index_data)
       idx_def = "t.index "
 
-      if index_data[:columns].size == 1
-        idx_def += "[\"#{index_data[:columns].first}\"]"
+      idx_def += if index_data[:columns].size == 1
+        "[\"#{index_data[:columns].first}\"]"
       else
-        idx_def += "[#{index_data[:columns].map { |c| "\"#{c}\"" }.join(', ')}]"
+        "[#{index_data[:columns].map { |c| "\"#{c}\"" }.join(', ')}]"
       end
 
       idx_def += ", name: \"#{index_name}\""
@@ -522,12 +520,12 @@ module FastSchemaDumper
         end
 
         unless order_hash.empty?
-          if index_data[:columns].size == 1
+          idx_def += if index_data[:columns].size == 1
             # For single column index, use simplified syntax
-            idx_def += ", order: :#{order_hash.values.first}"
+            ", order: :#{order_hash.values.first}"
           else
             # For compound index, use hash syntax
-            idx_def += ", order: { #{order_hash.map { |k, v| "#{k}: :#{v}" }.join(', ')} }"
+            ", order: { #{order_hash.map { |k, v| "#{k}: :#{v}" }.join(', ')} }"
           end
         end
       end
