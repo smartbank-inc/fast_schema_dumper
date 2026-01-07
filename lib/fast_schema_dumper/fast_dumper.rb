@@ -315,7 +315,7 @@ module FastSchemaDumper
       # Indexes
       # Rails orders indexes lexicographically by their column arrays
       # Example: ["a", "b"] < ["a"] < ["b", "c"] < ["b"] < ["d"]
-      sorted_indexes = indexes.reject { |name, _| name == 'PRIMARY' }.sort_by do |index_name, index_data|
+      sorted_indexes = indexes.except('PRIMARY').sort_by do |index_name, index_data|
         # Create an array padded with high values for comparison
         # This ensures that missing columns sort after existing ones
         max_cols = indexes.values.map { |data| data[:columns].size }.max || 1
@@ -347,7 +347,7 @@ module FastSchemaDumper
           end
         end
 
-        check_clause.gsub!('\\'', "'") # don't escape single quotes for compatibility with the original dumper
+        check_clause.gsub!("\\'", "'") # don't escape single quotes for compatibility with the original dumper
 
         ck_line = "  t.check_constraint \"#{check_clause}\""
 
@@ -495,7 +495,7 @@ module FastSchemaDumper
       when 'json'
         (default == "'[]'") ? '[]' : '{}'
       else
-        (/^'.*'$/.match?(default)) ? "\"#{default[1..-2]}\"" : default
+        /^'.*'$/.match?(default) ? "\"#{default[1..-2]}\"" : default
       end
     end
 
