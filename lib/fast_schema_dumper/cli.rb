@@ -2,7 +2,7 @@ require 'erb'
 require 'active_record'
 require 'active_record/database_configurations'
 
-require_relative './fast_dumper'
+require_relative 'fast_dumper'
 
 module FastSchemaDumper
   class CLI
@@ -11,8 +11,6 @@ module FastSchemaDumper
     end
 
     def run(argv)
-      argv = argv.dup
-
       env = ENV['RAILS_ENV'] || 'development'
 
       database_yml_path = File.join(Dir.pwd, 'config', 'database.yml')
@@ -27,7 +25,7 @@ module FastSchemaDumper
 
       SchemaDumper.dump
 
-      return 0
+      0
     end
   end
 end
