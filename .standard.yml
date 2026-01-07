@@ -1,4 +1,5 @@
 ruby_version: 3.2
 ignore:
   - "**/*":
-    - Style/StringLiterals
+      - Style/StringLiterals
+      - Style/StringLiteralsInInterpolation
