@@ -1,3 +1,5 @@
+[![Test](https://github.com/smartbank-inc/fast_schema_dumper/actions/workflows/test.yml/badge.svg)](https://github.com/smartbank-inc/fast_schema_dumper/actions/workflows/test.yml)
+
 # fast_schema_dumper
 
 A super fast alternative to ActiveRecord::SchemaDumper. Currently only MySQL is supported.
