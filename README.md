@@ -1,4 +1,5 @@
 [![Test](https://github.com/smartbank-inc/fast_schema_dumper/actions/workflows/test.yml/badge.svg)](https://github.com/smartbank-inc/fast_schema_dumper/actions/workflows/test.yml)
+[![Gem Version](https://badge.fury.io/rb/fast_schema_dumper.svg)](https://badge.fury.io/rb/fast_schema_dumper)
 
 # fast_schema_dumper
 
