@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative 'fast_dumper'
 
 # Loading this file will overwrite `Ridgepole::Dumper.dump`.
