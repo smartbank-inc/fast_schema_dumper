@@ -38,6 +38,7 @@ module FastSchemaDumper
           , NUMERIC_SCALE
           , COLUMN_TYPE
           , EXTRA
+          , GENERATION_EXPRESSION
           , COLUMN_COMMENT
           , DATETIME_PRECISION
           , COLLATION_NAME
@@ -364,6 +365,8 @@ module FastSchemaDumper
     end
 
     def format_column(column)
+      return format_generated_column(column) if generated_column?(column)
+
       col_def = "t.#{map_column_type(column)} \"#{column['COLUMN_NAME']}\""
 
       # limit (varchar, char)
@@ -431,6 +434,21 @@ module FastSchemaDumper
       end
 
       col_def
+    end
+
+    def format_generated_column(column)
+      col_def = "t.virtual \"#{column['COLUMN_NAME']}\", type: :#{map_column_type(column)}, as: \"#{escape_string(column['GENERATION_EXPRESSION'])}\""
+      col_def += ", stored: true" if stored_generated_column?(column)
+      col_def += ", comment: \"#{escape_string(column['COLUMN_COMMENT'])}\"" if column['COLUMN_COMMENT'] && !column['COLUMN_COMMENT'].empty?
+      col_def
+    end
+
+    def generated_column?(column)
+      column['EXTRA'].include?(' GENERATED')
+    end
+
+    def stored_generated_column?(column)
+      column['EXTRA'].include?('STORED GENERATED')
     end
 
     def map_column_type(column)
