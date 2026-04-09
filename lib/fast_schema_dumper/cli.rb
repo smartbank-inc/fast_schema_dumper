@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'erb'
 require 'active_record'
 require 'active_record/database_configurations'
@@ -10,7 +12,7 @@ module FastSchemaDumper
       new.run(...)
     end
 
-    def run(argv)
+    def run(_argv)
       env = ENV['RAILS_ENV'] || 'development'
 
       database_yml_path = File.join(Dir.pwd, 'config', 'database.yml')
