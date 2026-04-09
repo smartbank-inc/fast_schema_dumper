@@ -3,16 +3,23 @@
 
 # fast_schema_dumper
 
-A super fast alternative to ActiveRecord::SchemaDumper. Currently only MySQL is supported.
+A super fast alternative to `ActiveRecord::SchemaDumper`. Currently only MySQL is supported.
+
+## What It Does
+
+- Reads schema metadata directly from `INFORMATION_SCHEMA`
+- Emits Rails-style `schema.rb` output
+- Works as a standalone executable
+- Can override `Ridgepole::Dumper.dump`
 
 ## Usage
 
 ### Ridgepole integration
 
-Requiring `fast_schema_dumper/ridgepole` will overwrite `Ridgepole::Dumper.dump`, which will force Ridgepole to use fast_schema_dumper.
+Require `fast_schema_dumper/ridgepole` after loading `ridgepole` to replace `Ridgepole::Dumper.dump` with `fast_schema_dumper`.
 
-```
-RUBYOPT='-rridgepole -rfast_schema_dumper' ridgepole ... --apply
+```bash
+RUBYOPT='-rridgepole -rfast_schema_dumper/ridgepole' ridgepole --apply
 ```
 
 #### Environment variables for Ridgepole
