@@ -47,4 +47,27 @@ class FastSchemaDumperTest < Minitest::Test
       actual
     )
   end
+
+  def test_generated_column_detection_does_not_match_default_generated
+    dumper = FastSchemaDumper::SchemaDumper.new
+    column = {
+      'COLUMN_NAME' => 'created_at',
+      'DATA_TYPE' => 'datetime',
+      'COLUMN_TYPE' => 'datetime',
+      'EXTRA' => 'DEFAULT_GENERATED',
+      'COLUMN_DEFAULT' => 'CURRENT_TIMESTAMP',
+      'COLUMN_COMMENT' => '',
+      'IS_NULLABLE' => 'NO',
+      'COLUMN_KEY' => '',
+      'CHARACTER_MAXIMUM_LENGTH' => nil,
+      'NUMERIC_PRECISION' => nil,
+      'NUMERIC_SCALE' => nil,
+      'DATETIME_PRECISION' => nil,
+      'COLLATION_NAME' => nil
+    }
+
+    actual = dumper.send(:format_column, column)
+
+    assert_equal('t.datetime "created_at", default: -> { "CURRENT_TIMESTAMP" }, null: false', actual)
+  end
 end

@@ -444,11 +444,11 @@ module FastSchemaDumper
     end
 
     def generated_column?(column)
-      column['EXTRA']&.include?('GENERATED')
+      column['EXTRA'].include?(' GENERATED')
     end
 
     def stored_generated_column?(column)
-      column['EXTRA'] == 'STORED GENERATED'
+      column['EXTRA'].include?('STORED GENERATED')
     end
 
     def map_column_type(column)
