@@ -1,5 +1,11 @@
 ## [Unreleased]
 
+## [0.5.0] - 2026-04-09
+
+- Handle generated columns in fast dumper. [#23](https://github.com/smartbank-inc/fast_schema_dumper/pull/23)
+- Add frozen string literal pragmas and update README. [#25](https://github.com/smartbank-inc/fast_schema_dumper/pull/25)
+- Add RubyGems version badge to README. [#17](https://github.com/smartbank-inc/fast_schema_dumper/pull/17)
+
 ## [0.4.3] - 2026-03-11
 
 - Introduce StandardRB for code linting. [#9](https://github.com/smartbank-inc/fast_schema_dumper/pull/9)
