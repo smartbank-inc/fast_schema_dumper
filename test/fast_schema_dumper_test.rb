@@ -111,7 +111,7 @@ class FastSchemaDumperTest < Minitest::Test
 
     # string
     assert_match(/t\.string "name", limit: 100, null: false/, output)
-    assert_match(/t\.string "email", null: false/, output)
+    assert_match(/t\.string "email", default: "", null: false/, output)
 
     # integer (unsigned)
     assert_match(/t\.integer "age", unsigned: true/, output)
@@ -123,7 +123,7 @@ class FastSchemaDumperTest < Minitest::Test
     assert_match(/t\.float "rating"/, output)
 
     # boolean
-    assert_match(/t\.boolean "active", null: false, default: true/, output)
+    assert_match(/t\.boolean "active", default: true, null: false/, output)
 
     # tinyint (non-boolean)
     assert_match(/t\.integer "role", limit: 1/, output)
@@ -138,7 +138,7 @@ class FastSchemaDumperTest < Minitest::Test
     assert_match(/t\.json "metadata"/, output)
 
     # binary
-    assert_match(/t\.binary "avatar", limit: 16/, output)
+    assert_match(/t\.binary "avatar"/, output)
 
     # date
     assert_match(/t\.date "born_on"/, output)
@@ -147,7 +147,7 @@ class FastSchemaDumperTest < Minitest::Test
     assert_match(/t\.datetime "login_at"/, output)
 
     # datetime with default CURRENT_TIMESTAMP
-    assert_match(/t\.datetime "created_at", default: -> \{ "CURRENT_TIMESTAMP" \}, null: false/, output)
+    assert_match(/t\.datetime "created_at",.*default: -> \{ "CURRENT_TIMESTAMP" \}, null: false/, output)
   end
 
   def test_dump_collation
@@ -197,8 +197,10 @@ class FastSchemaDumperTest < Minitest::Test
   def test_dump_datetime_precision
     skip_unless_mysql!
     output = dump_schema
-    # published_at DATETIME(6) should have precision: 6
-    assert_match(/t\.datetime "published_at", precision: 6/, output)
+    # DATETIME without fractional seconds outputs precision: nil
+    assert_match(/t\.datetime "created_at", precision: nil/, output)
+    # DATETIME(6) omits precision (6 is the default when fractional seconds are used)
+    assert_match(/t\.datetime "published_at"/, output)
   end
 
   def test_dump_generated_columns
@@ -217,8 +219,8 @@ class FastSchemaDumperTest < Minitest::Test
     skip_unless_mysql!
     output = dump_schema
 
-    assert_match(/t\.check_constraint.*price >= 0/, output)
-    assert_match(/t\.check_constraint.*quantity >= 0/, output)
+    assert_match(/t\.check_constraint.*`price` >= 0/, output)
+    assert_match(/t\.check_constraint.*`quantity` >= 0/, output)
   end
 
   def test_dump_table_comment

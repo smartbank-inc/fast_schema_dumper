@@ -3,6 +3,8 @@ on: [push, pull_request]
 jobs:
   check:
     runs-on: ubuntu-slim
+    env:
+      BUNDLE_WITHOUT: mysql
     steps:
     - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
     - uses: ruby/setup-ruby@e65c17d16e57e481586a6a5a0282698790062f92 # v1.300.0
