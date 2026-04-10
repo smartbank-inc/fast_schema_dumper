@@ -7,5 +7,6 @@ gemspec
 
 gem "irb"
 gem 'minitest'
+gem "mysql2"
 gem "rake", "~> 13.0"
 gem "standard", "~> 1.52"
