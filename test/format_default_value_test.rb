@@ -64,7 +64,7 @@ class FormatDefaultValueTest < Minitest::Test
   end
 
   def test_json_non_array_default_returns_empty_hash
-    actual = @dumper.send(:format_default_value, "'{}' ", "json")
+    actual = @dumper.send(:format_default_value, "'{}'", "json")
     assert_equal("{}", actual)
   end
 end
