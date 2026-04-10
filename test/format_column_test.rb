@@ -186,4 +186,48 @@ class FormatColumnTest < Minitest::Test
     assert_includes(actual, 'collation: "utf8mb4_bin"')
     assert_equal('t.string "name", collation: "utf8mb4_bin"', actual)
   end
+
+  def test_format_generated_column
+    column = base_column(
+      "COLUMN_NAME" => "active_unique_key",
+      "DATA_TYPE" => "int",
+      "COLUMN_TYPE" => "int",
+      "EXTRA" => "STORED GENERATED",
+      "GENERATION_EXPRESSION" => "if((`deleted_at` is null),1,NULL)",
+      "CHARACTER_MAXIMUM_LENGTH" => nil
+    )
+    actual = @dumper.send(:format_column, column)
+    assert_equal(
+      't.virtual "active_unique_key", type: :integer, as: "if((`deleted_at` is null),1,NULL)", stored: true',
+      actual
+    )
+  end
+
+  def test_format_generated_column_with_comment
+    column = base_column(
+      "COLUMN_NAME" => "full_name",
+      "EXTRA" => "VIRTUAL GENERATED",
+      "GENERATION_EXPRESSION" => "concat(`first_name`,`last_name`)",
+      "COLUMN_COMMENT" => "generated name"
+    )
+    actual = @dumper.send(:format_column, column)
+    assert_equal(
+      't.virtual "full_name", type: :string, as: "concat(`first_name`,`last_name`)", comment: "generated name"',
+      actual
+    )
+  end
+
+  def test_generated_column_detection_does_not_match_default_generated
+    column = base_column(
+      "COLUMN_NAME" => "created_at",
+      "DATA_TYPE" => "datetime",
+      "COLUMN_TYPE" => "datetime",
+      "EXTRA" => "DEFAULT_GENERATED",
+      "COLUMN_DEFAULT" => "CURRENT_TIMESTAMP",
+      "IS_NULLABLE" => "NO",
+      "CHARACTER_MAXIMUM_LENGTH" => nil
+    )
+    actual = @dumper.send(:format_column, column)
+    assert_equal('t.datetime "created_at", default: -> { "CURRENT_TIMESTAMP" }, null: false', actual)
+  end
 end
