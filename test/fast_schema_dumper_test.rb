@@ -5,7 +5,7 @@ require "fast_schema_dumper/fast_dumper"
 
 class FastSchemaDumperTest < Minitest::Test
   TABLES = %w[
-    fsd_users fsd_posts fsd_comments fsd_profiles fsd_products
+    users posts comments profiles products
   ].freeze
 
   def setup
@@ -15,7 +15,7 @@ class FastSchemaDumperTest < Minitest::Test
     conn = ActiveRecord::Base.connection
 
     conn.execute <<~SQL
-      CREATE TABLE IF NOT EXISTS fsd_users (
+      CREATE TABLE IF NOT EXISTS users (
         id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
         name VARCHAR(100) NOT NULL,
         email VARCHAR(255) NOT NULL DEFAULT '',
@@ -33,43 +33,43 @@ class FastSchemaDumperTest < Minitest::Test
         preferences VARCHAR(255) COLLATE utf8mb4_bin,
         created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        UNIQUE INDEX index_fsd_users_on_email (email),
-        INDEX index_fsd_users_on_name_and_age (name, age)
+        UNIQUE INDEX index_users_on_email (email),
+        INDEX index_users_on_name_and_age (name, age)
       ) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci COMMENT='User accounts'
     SQL
 
     conn.execute <<~SQL
-      CREATE TABLE IF NOT EXISTS fsd_posts (
+      CREATE TABLE IF NOT EXISTS posts (
         id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-        fsd_user_id BIGINT NOT NULL,
+        user_id BIGINT NOT NULL,
         title VARCHAR(255) NOT NULL,
         body LONGTEXT,
         status SMALLINT NOT NULL DEFAULT 0,
         published_at DATETIME(6),
         created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        INDEX index_fsd_posts_on_fsd_user_id (fsd_user_id),
-        INDEX index_fsd_posts_on_status_and_published_at (status, published_at),
-        CONSTRAINT fk_fsd_posts_user FOREIGN KEY (fsd_user_id) REFERENCES fsd_users(id)
+        INDEX index_posts_on_user_id (user_id),
+        INDEX index_posts_on_status_and_published_at (status, published_at),
+        CONSTRAINT fk_posts_user FOREIGN KEY (user_id) REFERENCES users(id)
       ) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci
     SQL
 
     conn.execute <<~SQL
-      CREATE TABLE IF NOT EXISTS fsd_comments (
+      CREATE TABLE IF NOT EXISTS comments (
         id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-        fsd_post_id BIGINT NOT NULL,
-        fsd_user_id BIGINT NOT NULL,
+        post_id BIGINT NOT NULL,
+        user_id BIGINT NOT NULL,
         body TEXT NOT NULL,
         created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        INDEX index_fsd_comments_on_fsd_post_id (fsd_post_id),
-        CONSTRAINT fk_rails_comment_post FOREIGN KEY (fsd_post_id) REFERENCES fsd_posts(id),
-        CONSTRAINT fk_rails_comment_user FOREIGN KEY (fsd_user_id) REFERENCES fsd_users(id)
+        INDEX index_comments_on_post_id (post_id),
+        CONSTRAINT fk_rails_comment_post FOREIGN KEY (post_id) REFERENCES posts(id),
+        CONSTRAINT fk_rails_comment_user FOREIGN KEY (user_id) REFERENCES users(id)
       ) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci
     SQL
 
     conn.execute <<~SQL
-      CREATE TABLE IF NOT EXISTS fsd_profiles (
+      CREATE TABLE IF NOT EXISTS profiles (
         id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-        fsd_user_id BIGINT NOT NULL,
+        user_id BIGINT NOT NULL,
         display_name VARCHAR(255),
         full_name VARCHAR(255) AS (CONCAT(display_name, ' (profile)')) VIRTUAL,
         slug VARCHAR(255) AS (LOWER(display_name)) STORED,
@@ -78,14 +78,14 @@ class FastSchemaDumperTest < Minitest::Test
     SQL
 
     conn.execute <<~SQL
-      CREATE TABLE IF NOT EXISTS fsd_products (
+      CREATE TABLE IF NOT EXISTS products (
         id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
         name VARCHAR(255) NOT NULL,
         price INT NOT NULL DEFAULT 0 COMMENT 'Price in cents',
         quantity INT NOT NULL DEFAULT 0,
         created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        CONSTRAINT chk_fsd_products_price CHECK (price >= 0),
-        CONSTRAINT chk_fsd_products_quantity CHECK (quantity >= 0)
+        CONSTRAINT chk_products_price CHECK (price >= 0),
+        CONSTRAINT chk_products_quantity CHECK (quantity >= 0)
       ) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci COMMENT='Product catalog'
     SQL
   end
@@ -159,7 +159,7 @@ class FastSchemaDumperTest < Minitest::Test
   def test_dump_table_options
     skip_unless_mysql!
     output = dump_schema
-    assert_match(/create_table "fsd_users".*charset: "utf8mb4".*collation: "utf8mb4_general_ci".*comment: "User accounts"/, output)
+    assert_match(/create_table "users".*charset: "utf8mb4".*collation: "utf8mb4_general_ci".*comment: "User accounts"/, output)
   end
 
   def test_dump_indexes
@@ -167,19 +167,19 @@ class FastSchemaDumperTest < Minitest::Test
     output = dump_schema
 
     # unique index
-    assert_match(/t\.index \["email"\], name: "index_fsd_users_on_email", unique: true/, output)
+    assert_match(/t\.index \["email"\], name: "index_users_on_email", unique: true/, output)
 
     # compound index
-    assert_match(/t\.index \["name", "age"\], name: "index_fsd_users_on_name_and_age"/, output)
+    assert_match(/t\.index \["name", "age"\], name: "index_users_on_name_and_age"/, output)
   end
 
   def test_dump_foreign_keys
     skip_unless_mysql!
     output = dump_schema
 
-    assert_match(/add_foreign_key "fsd_posts", "fsd_users"/, output)
-    assert_match(/add_foreign_key "fsd_comments", "fsd_posts"/, output)
-    assert_match(/add_foreign_key "fsd_comments", "fsd_users"/, output)
+    assert_match(/add_foreign_key "posts", "users"/, output)
+    assert_match(/add_foreign_key "comments", "posts"/, output)
+    assert_match(/add_foreign_key "comments", "users"/, output)
   end
 
   def test_dump_longtext
@@ -224,7 +224,7 @@ class FastSchemaDumperTest < Minitest::Test
   def test_dump_table_comment
     skip_unless_mysql!
     output = dump_schema
-    assert_match(/create_table "fsd_products".*comment: "Product catalog"/, output)
+    assert_match(/create_table "products".*comment: "Product catalog"/, output)
   end
 
   def test_dump_column_comment
