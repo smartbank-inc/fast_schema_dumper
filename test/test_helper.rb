@@ -6,10 +6,6 @@ require "active_record"
 
 require "minitest/autorun"
 
-def mysql_available?
-  ENV.key?("MYSQL_HOST")
-end
-
 def setup_database_connection!
   ActiveRecord::Base.establish_connection(
     adapter: "mysql2",

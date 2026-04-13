@@ -9,8 +9,6 @@ class FastSchemaDumperTest < Minitest::Test
   ].freeze
 
   def setup
-    return unless mysql_available?
-
     setup_database_connection!
     @conn = ActiveRecord::Base.connection
     reset_test_tables!
@@ -92,8 +90,6 @@ class FastSchemaDumperTest < Minitest::Test
   end
 
   def teardown
-    return unless mysql_available?
-
     reset_test_tables!
   end
 
@@ -102,7 +98,6 @@ class FastSchemaDumperTest < Minitest::Test
   end
 
   def test_dump_basic_column_types
-    skip_unless_mysql!
     output = dump_schema
 
     # string
@@ -147,19 +142,16 @@ class FastSchemaDumperTest < Minitest::Test
   end
 
   def test_dump_collation
-    skip_unless_mysql!
     output = dump_schema
     assert_match(/t\.string "preferences".*collation: "utf8mb4_bin"/, output)
   end
 
   def test_dump_table_options
-    skip_unless_mysql!
     output = dump_schema
     assert_match(/create_table "users".*charset: "utf8mb4".*collation: "utf8mb4_general_ci".*comment: "User accounts"/, output)
   end
 
   def test_dump_indexes
-    skip_unless_mysql!
     output = dump_schema
 
     # unique index
@@ -170,7 +162,6 @@ class FastSchemaDumperTest < Minitest::Test
   end
 
   def test_dump_foreign_keys
-    skip_unless_mysql!
     output = dump_schema
 
     assert_match(/add_foreign_key "posts", "users"/, output)
@@ -179,19 +170,16 @@ class FastSchemaDumperTest < Minitest::Test
   end
 
   def test_dump_longtext
-    skip_unless_mysql!
     output = dump_schema
     assert_match(/t\.text "body", size: :long/, output)
   end
 
   def test_dump_smallint
-    skip_unless_mysql!
     output = dump_schema
     assert_match(/t\.integer "status", limit: 2/, output)
   end
 
   def test_dump_datetime_precision
-    skip_unless_mysql!
     output = dump_schema
     # DATETIME without fractional seconds outputs precision: nil
     assert_match(/t\.datetime "created_at", precision: nil/, output)
@@ -200,7 +188,6 @@ class FastSchemaDumperTest < Minitest::Test
   end
 
   def test_dump_generated_columns
-    skip_unless_mysql!
     output = dump_schema
 
     # VIRTUAL generated column
@@ -212,7 +199,6 @@ class FastSchemaDumperTest < Minitest::Test
   end
 
   def test_dump_check_constraints
-    skip_unless_mysql!
     output = dump_schema
 
     assert_match(/t\.check_constraint.*`price` >= 0/, output)
@@ -220,26 +206,22 @@ class FastSchemaDumperTest < Minitest::Test
   end
 
   def test_dump_table_comment
-    skip_unless_mysql!
     output = dump_schema
     assert_match(/create_table "products".*comment: "Product catalog"/, output)
   end
 
   def test_dump_column_comment
-    skip_unless_mysql!
     output = dump_schema
     assert_match(/t\.integer "price".*comment: "Price in cents"/, output)
   end
 
   def test_dump_excludes_internal_tables
-    skip_unless_mysql!
     output = dump_schema
     refute_match(/ar_internal_metadata/, output)
     refute_match(/schema_migrations/, output)
   end
 
   def test_dump_complete_roundtrip
-    skip_unless_mysql!
     output = dump_schema
 
     # Verify all test tables appear in the dump
@@ -252,10 +234,6 @@ class FastSchemaDumperTest < Minitest::Test
   end
 
   private
-
-  def skip_unless_mysql!
-    skip "MySQL is not available (set MYSQL_HOST to enable)" unless mysql_available?
-  end
 
   def dump_schema
     stream = StringIO.new
