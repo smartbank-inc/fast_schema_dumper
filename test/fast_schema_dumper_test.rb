@@ -4,6 +4,10 @@ require "test_helper"
 require "fast_schema_dumper/fast_dumper"
 
 class FastSchemaDumperTest < Minitest::Test
+  INTERNAL_TABLES = %w[
+    ar_internal_metadata schema_migrations
+  ].freeze
+
   TABLES = %w[
     users posts comments profiles products
   ].freeze
@@ -216,9 +220,12 @@ class FastSchemaDumperTest < Minitest::Test
   end
 
   def test_dump_excludes_internal_tables
+    create_internal_tables!
     output = dump_schema
     refute_match(/ar_internal_metadata/, output)
     refute_match(/schema_migrations/, output)
+  ensure
+    drop_internal_tables!
   end
 
   def test_dump_complete_roundtrip
@@ -243,6 +250,29 @@ class FastSchemaDumperTest < Minitest::Test
       ActiveRecord::Base
     )
     stream.string
+  end
+
+  def create_internal_tables!
+    @conn.execute <<~SQL
+      CREATE TABLE schema_migrations (
+        version VARCHAR(255) NOT NULL PRIMARY KEY
+      ) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci
+    SQL
+
+    @conn.execute <<~SQL
+      CREATE TABLE ar_internal_metadata (
+        `key` VARCHAR(255) NOT NULL PRIMARY KEY,
+        value VARCHAR(255),
+        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+      ) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci
+    SQL
+  end
+
+  def drop_internal_tables!
+    INTERNAL_TABLES.each do |table|
+      @conn.execute "DROP TABLE IF EXISTS #{table}"
+    end
   end
 
   def reset_test_tables!
