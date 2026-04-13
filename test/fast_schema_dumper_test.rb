@@ -95,10 +95,13 @@ class FastSchemaDumperTest < Minitest::Test
 
     conn = ActiveRecord::Base.connection
     conn.execute "SET FOREIGN_KEY_CHECKS = 0"
-    TABLES.each do |table|
-      conn.execute "DROP TABLE IF EXISTS #{table}"
+    begin
+      TABLES.each do |table|
+        conn.execute "DROP TABLE IF EXISTS #{table}"
+      end
+    ensure
+      conn.execute "SET FOREIGN_KEY_CHECKS = 1"
     end
-    conn.execute "SET FOREIGN_KEY_CHECKS = 1"
   end
 
   def test_that_it_has_a_version_number
