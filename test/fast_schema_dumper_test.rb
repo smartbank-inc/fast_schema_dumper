@@ -13,9 +13,10 @@ class FastSchemaDumperTest < Minitest::Test
 
     setup_database_connection!
     conn = ActiveRecord::Base.connection
+    reset_test_tables!(conn)
 
     conn.execute <<~SQL
-      CREATE TABLE IF NOT EXISTS users (
+      CREATE TABLE users (
         id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
         name VARCHAR(100) NOT NULL,
         email VARCHAR(255) NOT NULL DEFAULT '',
@@ -39,7 +40,7 @@ class FastSchemaDumperTest < Minitest::Test
     SQL
 
     conn.execute <<~SQL
-      CREATE TABLE IF NOT EXISTS posts (
+      CREATE TABLE posts (
         id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
         user_id BIGINT NOT NULL,
         title VARCHAR(255) NOT NULL,
@@ -54,7 +55,7 @@ class FastSchemaDumperTest < Minitest::Test
     SQL
 
     conn.execute <<~SQL
-      CREATE TABLE IF NOT EXISTS comments (
+      CREATE TABLE comments (
         id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
         post_id BIGINT NOT NULL,
         user_id BIGINT NOT NULL,
@@ -67,7 +68,7 @@ class FastSchemaDumperTest < Minitest::Test
     SQL
 
     conn.execute <<~SQL
-      CREATE TABLE IF NOT EXISTS profiles (
+      CREATE TABLE profiles (
         id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
         user_id BIGINT NOT NULL,
         display_name VARCHAR(255),
@@ -78,7 +79,7 @@ class FastSchemaDumperTest < Minitest::Test
     SQL
 
     conn.execute <<~SQL
-      CREATE TABLE IF NOT EXISTS products (
+      CREATE TABLE products (
         id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
         name VARCHAR(255) NOT NULL,
         price INT NOT NULL DEFAULT 0 COMMENT 'Price in cents',
@@ -94,14 +95,7 @@ class FastSchemaDumperTest < Minitest::Test
     return unless mysql_available?
 
     conn = ActiveRecord::Base.connection
-    conn.execute "SET FOREIGN_KEY_CHECKS = 0"
-    begin
-      TABLES.each do |table|
-        conn.execute "DROP TABLE IF EXISTS #{table}"
-      end
-    ensure
-      conn.execute "SET FOREIGN_KEY_CHECKS = 1"
-    end
+    reset_test_tables!(conn)
   end
 
   def test_that_it_has_a_version_number
@@ -272,5 +266,16 @@ class FastSchemaDumperTest < Minitest::Test
       ActiveRecord::Base
     )
     stream.string
+  end
+
+  def reset_test_tables!(conn)
+    conn.execute "SET FOREIGN_KEY_CHECKS = 0"
+    begin
+      TABLES.each do |table|
+        conn.execute "DROP TABLE IF EXISTS #{table}"
+      end
+    ensure
+      conn.execute "SET FOREIGN_KEY_CHECKS = 1"
+    end
   end
 end
