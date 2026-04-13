@@ -1,0 +1,8 @@
+services:
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: fast_schema_dumper_test
+    ports:
+      - "3306:3306"
