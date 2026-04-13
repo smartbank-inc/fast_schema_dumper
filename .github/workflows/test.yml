@@ -4,7 +4,6 @@ on:
   push:
     branches: [main]
   pull_request:
-    branches: [main]
 
 jobs:
   test:
@@ -12,10 +11,6 @@ jobs:
     strategy:
       matrix:
         ruby-version: ['3.2', '3.3', '3.4', '4.0']
-
-    env:
-      BUNDLE_WITHOUT: mysql
-
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - name: Set up Ruby ${{ matrix.ruby-version }}
@@ -31,7 +26,6 @@ jobs:
     strategy:
       matrix:
         ruby-version: ['3.2', '3.3', '3.4', '4.0']
-
     services:
       mysql:
         image: mysql:8.0
@@ -45,13 +39,11 @@ jobs:
           --health-interval=10s
           --health-timeout=5s
           --health-retries=5
-
     env:
       MYSQL_HOST: 127.0.0.1
       MYSQL_USER: root
       MYSQL_PASSWORD: password
       MYSQL_DATABASE: fast_schema_dumper_test
-
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - name: Set up Ruby ${{ matrix.ruby-version }}

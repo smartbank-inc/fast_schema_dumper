@@ -9,7 +9,4 @@ gem "irb"
 gem 'minitest'
 gem "rake", "~> 13.0"
 gem "standard", "~> 1.52"
-
-group :mysql do
-  gem "mysql2"
-end
+gem "mysql2"
