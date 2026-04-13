@@ -21,7 +21,7 @@ jobs:
           - 3306:3306
         options: >-
           --health-cmd="mysqladmin ping -h 127.0.0.1"
-          --health-interval=5
+          --health-interval=5s
           --health-timeout=3s
           --health-retries=3
     steps:
