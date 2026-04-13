@@ -1,5 +1,11 @@
 ## [Unreleased]
 
+## [0.5.1] - 2026-04-13
+
+- Add unit tests for pure private methods in `FastSchemaDumper::SchemaDumper`. [#27](https://github.com/smartbank-inc/fast_schema_dumper/pull/27)
+- Trim unnecessary files from gem package. [#28](https://github.com/smartbank-inc/fast_schema_dumper/pull/28)
+- Add MySQL integration tests for schema dump verification. [#29](https://github.com/smartbank-inc/fast_schema_dumper/pull/29)
+
 ## [0.5.0] - 2026-04-09
 
 - Handle generated columns in fast dumper. [#23](https://github.com/smartbank-inc/fast_schema_dumper/pull/23)
