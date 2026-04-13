@@ -12,10 +12,10 @@ class FastSchemaDumperTest < Minitest::Test
     return unless mysql_available?
 
     setup_database_connection!
-    conn = ActiveRecord::Base.connection
-    reset_test_tables!(conn)
+    @conn = ActiveRecord::Base.connection
+    reset_test_tables!
 
-    conn.execute <<~SQL
+    @conn.execute <<~SQL
       CREATE TABLE users (
         id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
         name VARCHAR(100) NOT NULL,
@@ -39,7 +39,7 @@ class FastSchemaDumperTest < Minitest::Test
       ) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci COMMENT='User accounts'
     SQL
 
-    conn.execute <<~SQL
+    @conn.execute <<~SQL
       CREATE TABLE posts (
         id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
         user_id BIGINT NOT NULL,
@@ -54,7 +54,7 @@ class FastSchemaDumperTest < Minitest::Test
       ) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci
     SQL
 
-    conn.execute <<~SQL
+    @conn.execute <<~SQL
       CREATE TABLE comments (
         id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
         post_id BIGINT NOT NULL,
@@ -67,7 +67,7 @@ class FastSchemaDumperTest < Minitest::Test
       ) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci
     SQL
 
-    conn.execute <<~SQL
+    @conn.execute <<~SQL
       CREATE TABLE profiles (
         id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
         user_id BIGINT NOT NULL,
@@ -78,7 +78,7 @@ class FastSchemaDumperTest < Minitest::Test
       ) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci
     SQL
 
-    conn.execute <<~SQL
+    @conn.execute <<~SQL
       CREATE TABLE products (
         id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
         name VARCHAR(255) NOT NULL,
@@ -94,8 +94,7 @@ class FastSchemaDumperTest < Minitest::Test
   def teardown
     return unless mysql_available?
 
-    conn = ActiveRecord::Base.connection
-    reset_test_tables!(conn)
+    reset_test_tables!
   end
 
   def test_that_it_has_a_version_number
@@ -268,14 +267,14 @@ class FastSchemaDumperTest < Minitest::Test
     stream.string
   end
 
-  def reset_test_tables!(conn)
-    conn.execute "SET FOREIGN_KEY_CHECKS = 0"
+  def reset_test_tables!
+    @conn.execute "SET FOREIGN_KEY_CHECKS = 0"
     begin
       TABLES.each do |table|
-        conn.execute "DROP TABLE IF EXISTS #{table}"
+        @conn.execute "DROP TABLE IF EXISTS #{table}"
       end
     ensure
-      conn.execute "SET FOREIGN_KEY_CHECKS = 1"
+      @conn.execute "SET FOREIGN_KEY_CHECKS = 1"
     end
   end
 end
