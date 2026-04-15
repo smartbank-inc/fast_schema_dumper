@@ -1,5 +1,11 @@
 ## [Unreleased]
 
+## [0.5.2] - 2026-04-15
+
+- Fix generated column dump order to match ActiveRecord::SchemaDumper. [#32](https://github.com/smartbank-inc/fast_schema_dumper/pull/32)
+- Fix generated column expression dump to align with Rails output. [#33](https://github.com/smartbank-inc/fast_schema_dumper/pull/33)
+- Use include-based assertions in schema dumper tests. [#31](https://github.com/smartbank-inc/fast_schema_dumper/pull/31)
+
 ## [0.5.1] - 2026-04-13
 
 - Add unit tests for pure private methods in `FastSchemaDumper::SchemaDumper`. [#27](https://github.com/smartbank-inc/fast_schema_dumper/pull/27)
