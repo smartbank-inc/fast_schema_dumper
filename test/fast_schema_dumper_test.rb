@@ -126,17 +126,17 @@ class FastSchemaDumperTest < Minitest::Test
     # datetime
     assert_match('t.datetime "login_at"', output)
     # datetime with default CURRENT_TIMESTAMP
-    assert_match(/t\.datetime "created_at",.*default: -> \{ "CURRENT_TIMESTAMP" \}, null: false/, output)
+    assert_includes(output, 't.datetime "created_at", precision: nil, default: -> { "CURRENT_TIMESTAMP" }, null: false')
   end
 
   def test_dump_collation
     output = dump_schema
-    assert_match(/t\.string "preferences".*collation: "utf8mb4_bin"/, output)
+    assert_includes(output, 't.string "preferences", collation: "utf8mb4_bin"')
   end
 
   def test_dump_table_options
     output = dump_schema
-    assert_match(/create_table "users".*charset: "utf8mb4".*collation: "utf8mb4_general_ci".*comment: "User accounts"/, output)
+    assert_includes(output, 'create_table "users", charset: "utf8mb4", collation: "utf8mb4_general_ci", comment: "User accounts", force: :cascade do |t|')
   end
 
   def test_dump_indexes
@@ -181,24 +181,24 @@ class FastSchemaDumperTest < Minitest::Test
     assert_match('t.virtual "full_name", type: :string, comment: "Profile display label", as:', output)
     refute_match(/t\.virtual "full_name".*stored: true/, output)
     # STORED generated column
-    assert_match(/t\.virtual "slug", type: :string.*stored: true/, output)
+    assert_includes(output, 't.virtual "slug", type: :string, as: "lower(`display_name`)", stored: true')
   end
 
   def test_dump_check_constraints
     output = dump_schema
 
-    assert_match(/t\.check_constraint.*`price` >= 0/, output)
-    assert_match(/t\.check_constraint.*`quantity` >= 0/, output)
+    assert_includes(output, 't.check_constraint "`price` >= 0", name: "chk_products_price"')
+    assert_includes(output, 't.check_constraint "`quantity` >= 0", name: "chk_products_quantity"')
   end
 
   def test_dump_table_comment
     output = dump_schema
-    assert_match(/create_table "products".*comment: "Product catalog"/, output)
+    assert_includes(output, 'create_table "products", charset: "utf8mb4", collation: "utf8mb4_general_ci", comment: "Product catalog", force: :cascade do |t|')
   end
 
   def test_dump_column_comment
     output = dump_schema
-    assert_match(/t\.integer "price".*comment: "Price in cents"/, output)
+    assert_includes(output, 't.integer "price", default: 0, null: false, comment: "Price in cents"')
   end
 
   def test_dump_excludes_internal_tables
