@@ -176,10 +176,11 @@ class FastSchemaDumperTest < Minitest::Test
 
   def test_dump_generated_columns
     output = dump_schema
+    full_name_definition = column_definition_for(output, "profiles", "full_name")
 
     # VIRTUAL generated column
     assert_includes(output, 't.virtual "full_name", type: :string, comment: "Profile display label", as:')
-    refute_match(/t\.virtual "full_name".*stored: true/, output)
+    refute_includes(full_name_definition, "stored: true")
     # STORED generated column
     assert_includes(output, 't.virtual "slug", type: :string, as: "lower(`display_name`)", stored: true')
   end
@@ -204,8 +205,8 @@ class FastSchemaDumperTest < Minitest::Test
   def test_dump_excludes_internal_tables
     create_internal_tables!
     output = dump_schema
-    refute_includes(output, "ar_internal_metadata")
-    refute_includes(output, "schema_migrations")
+    refute_includes(output, 'ar_internal_metadata')
+    refute_includes(output, 'schema_migrations')
   ensure
     drop_internal_tables!
   end
@@ -219,7 +220,7 @@ class FastSchemaDumperTest < Minitest::Test
     end
 
     # Verify dump ends properly (foreign keys come after table definitions)
-    assert_match(/^end\n\nadd_foreign_key/m, output)
+    assert_includes(output, "end\n\nadd_foreign_key")
   end
 
   def test_dump_matches_active_record_for_generated_column_definitions
