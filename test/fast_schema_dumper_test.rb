@@ -101,30 +101,30 @@ class FastSchemaDumperTest < Minitest::Test
     output = dump_schema
 
     # string
-    assert_match('t.string "name", limit: 100, null: false', output)
-    assert_match('t.string "email", default: "", null: false', output)
+    assert_includes(output, 't.string "name", limit: 100, null: false')
+    assert_includes(output, 't.string "email", default: "", null: false')
     # integer (unsigned)
-    assert_match('t.integer "age", unsigned: true', output)
+    assert_includes(output, 't.integer "age", unsigned: true')
     # decimal
-    assert_match('t.decimal "score", precision: 10, scale: 2', output)
+    assert_includes(output, 't.decimal "score", precision: 10, scale: 2')
     # float
-    assert_match('t.float "rating"', output)
+    assert_includes(output, 't.float "rating"')
     # boolean
-    assert_match('t.boolean "active", default: true, null: false', output)
+    assert_includes(output, 't.boolean "active", default: true, null: false')
     # tinyint (non-boolean)
-    assert_match('t.integer "role", limit: 1', output)
+    assert_includes(output, 't.integer "role", limit: 1')
     # text
-    assert_match('t.text "bio"', output)
+    assert_includes(output, 't.text "bio"')
     # mediumtext
-    assert_match('t.text "long_bio", size: :medium', output)
+    assert_includes(output, 't.text "long_bio", size: :medium')
     # json
-    assert_match('t.json "metadata"', output)
+    assert_includes(output, 't.json "metadata"')
     # binary
-    assert_match('t.binary "avatar"', output)
+    assert_includes(output, 't.binary "avatar"')
     # date
-    assert_match('t.date "born_on"', output)
+    assert_includes(output, 't.date "born_on"')
     # datetime
-    assert_match('t.datetime "login_at"', output)
+    assert_includes(output, 't.datetime "login_at"')
     # datetime with default CURRENT_TIMESTAMP
     assert_includes(output, 't.datetime "created_at", precision: nil, default: -> { "CURRENT_TIMESTAMP" }, null: false')
   end
@@ -143,42 +143,42 @@ class FastSchemaDumperTest < Minitest::Test
     output = dump_schema
 
     # unique index
-    assert_match('t.index ["email"], name: "index_users_on_email", unique: true', output)
+    assert_includes(output, 't.index ["email"], name: "index_users_on_email", unique: true')
     # compound index
-    assert_match('t.index ["name", "age"], name: "index_users_on_name_and_age"', output)
+    assert_includes(output, 't.index ["name", "age"], name: "index_users_on_name_and_age"')
   end
 
   def test_dump_foreign_keys
     output = dump_schema
 
-    assert_match('add_foreign_key "posts", "users"', output)
-    assert_match('add_foreign_key "comments", "posts"', output)
-    assert_match('add_foreign_key "comments", "users"', output)
+    assert_includes(output, 'add_foreign_key "posts", "users"')
+    assert_includes(output, 'add_foreign_key "comments", "posts"')
+    assert_includes(output, 'add_foreign_key "comments", "users"')
   end
 
   def test_dump_longtext
     output = dump_schema
-    assert_match('t.text "body", size: :long', output)
+    assert_includes(output, 't.text "body", size: :long')
   end
 
   def test_dump_smallint
     output = dump_schema
-    assert_match('t.integer "status", limit: 2', output)
+    assert_includes(output, 't.integer "status", limit: 2')
   end
 
   def test_dump_datetime_precision
     output = dump_schema
     # DATETIME without fractional seconds outputs precision: nil
-    assert_match('t.datetime "created_at", precision: nil', output)
+    assert_includes(output, 't.datetime "created_at", precision: nil')
     # DATETIME(6) omits precision (6 is the default when fractional seconds are used)
-    assert_match('t.datetime "published_at"', output)
+    assert_includes(output, 't.datetime "published_at"')
   end
 
   def test_dump_generated_columns
     output = dump_schema
 
     # VIRTUAL generated column
-    assert_match('t.virtual "full_name", type: :string, comment: "Profile display label", as:', output)
+    assert_includes(output, 't.virtual "full_name", type: :string, comment: "Profile display label", as:')
     refute_match(/t\.virtual "full_name".*stored: true/, output)
     # STORED generated column
     assert_includes(output, 't.virtual "slug", type: :string, as: "lower(`display_name`)", stored: true')
@@ -215,7 +215,7 @@ class FastSchemaDumperTest < Minitest::Test
 
     # Verify all test tables appear in the dump
     TABLES.each do |table|
-      assert_match(%(create_table "#{table}"), output, "Expected table #{table} in dump output")
+      assert_includes(output, %(create_table "#{table}"), "Expected table #{table} in dump output")
     end
 
     # Verify dump ends properly (foreign keys come after table definitions)
