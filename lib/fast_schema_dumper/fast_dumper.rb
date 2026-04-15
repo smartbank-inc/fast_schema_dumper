@@ -438,8 +438,9 @@ module FastSchemaDumper
 
     def format_generated_column(column)
       col_def = "t.virtual \"#{column['COLUMN_NAME']}\", type: :#{map_column_type(column)}"
+      expression = column['GENERATION_EXPRESSION'].gsub("\\'", "'")
       col_def += ", comment: \"#{escape_string(column['COLUMN_COMMENT'])}\"" if column['COLUMN_COMMENT'] && !column['COLUMN_COMMENT'].empty?
-      col_def += ", as: \"#{escape_string(column['GENERATION_EXPRESSION'])}\""
+      col_def += ", as: \"#{escape_string(expression)}\""
       col_def += ", stored: true" if stored_generated_column?(column)
       col_def
     end

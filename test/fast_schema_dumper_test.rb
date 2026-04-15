@@ -240,6 +240,22 @@ class FastSchemaDumperTest < Minitest::Test
     assert_match(/^end\n\nadd_foreign_key/m, output)
   end
 
+  def test_dump_matches_active_record_for_generated_column_definitions
+    active_record_output = dump_active_record_schema
+    fast_output = dump_schema
+
+    %w[full_name slug].each do |column_name|
+      expected = column_definition_for(active_record_output, "profiles", column_name)
+      actual = column_definition_for(fast_output, "profiles", column_name)
+
+      assert_equal expected, actual, <<~MSG
+        Expected generated column profiles.#{column_name} to match ActiveRecord::SchemaDumper output
+        expected: #{expected.inspect}
+        actual:   #{actual.inspect}
+      MSG
+    end
+  end
+
   private
 
   def dump_schema
@@ -250,6 +266,26 @@ class FastSchemaDumperTest < Minitest::Test
       ActiveRecord::Base
     )
     stream.string
+  end
+
+  def dump_active_record_schema
+    stream = StringIO.new
+    ActiveRecord::SchemaDumper.dump(
+      ActiveRecord::Base.connection_pool,
+      stream,
+      ActiveRecord::Base
+    )
+    stream.string
+  end
+
+  def column_definition_for(output, table_name, column_name)
+    table_block = output[/^\s*create_table "#{table_name}".*?^\s*end$/m]
+    raise "Could not find table #{table_name} in schema output" unless table_block
+
+    definition = table_block.lines.find { |line| line.include?("\"#{column_name}\"") }
+    raise "Could not find column #{table_name}.#{column_name} in schema output" unless definition
+
+    definition.strip
   end
 
   def create_internal_tables!
