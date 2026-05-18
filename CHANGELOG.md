@@ -1,5 +1,9 @@
 ## [Unreleased]
 
+## [0.5.3] - 2026-05-18
+
+- Add limit handling for binary/varbinary columns in format_column. [#39](https://github.com/smartbank-inc/fast_schema_dumper/pull/39)
+
 ## [0.5.2] - 2026-04-15
 
 - Fix generated column dump order to match ActiveRecord::SchemaDumper. [#32](https://github.com/smartbank-inc/fast_schema_dumper/pull/32)
