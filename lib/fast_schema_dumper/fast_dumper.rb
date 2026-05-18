@@ -386,6 +386,11 @@ module FastSchemaDumper
         col_def += ", limit: 3"
       end
 
+      # limit (binary, varbinary)
+      if ['binary', 'varbinary'].include?(column['DATA_TYPE']) && column['CHARACTER_MAXIMUM_LENGTH']
+        col_def += ", limit: #{column['CHARACTER_MAXIMUM_LENGTH']}"
+      end
+
       # size (text)
       if column['DATA_TYPE'] == 'mediumtext'
         col_def += ", size: :medium"

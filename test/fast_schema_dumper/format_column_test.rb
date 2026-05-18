@@ -234,6 +234,40 @@ class FormatColumnTest < Minitest::Test
     )
   end
 
+  def test_binary_with_limit
+    column = base_column(
+      "COLUMN_NAME" => "raw_image_data",
+      "DATA_TYPE" => "binary",
+      "COLUMN_TYPE" => "binary(512)",
+      "CHARACTER_MAXIMUM_LENGTH" => 512
+    )
+    actual = @dumper.send(:format_column, column)
+    assert_equal('t.binary "raw_image_data", limit: 512', actual)
+  end
+
+  def test_binary_with_limit_and_comment
+    column = base_column(
+      "COLUMN_NAME" => "raw_image_data",
+      "DATA_TYPE" => "binary",
+      "COLUMN_TYPE" => "binary(512)",
+      "CHARACTER_MAXIMUM_LENGTH" => 512,
+      "COLUMN_COMMENT" => "raw image data"
+    )
+    actual = @dumper.send(:format_column, column)
+    assert_equal('t.binary "raw_image_data", limit: 512, comment: "raw image data"', actual)
+  end
+
+  def test_varbinary_with_limit
+    column = base_column(
+      "COLUMN_NAME" => "token",
+      "DATA_TYPE" => "varbinary",
+      "COLUMN_TYPE" => "varbinary(255)",
+      "CHARACTER_MAXIMUM_LENGTH" => 255
+    )
+    actual = @dumper.send(:format_column, column)
+    assert_equal('t.binary "token", limit: 255', actual)
+  end
+
   def test_generated_column_detection_does_not_match_default_generated
     column = base_column(
       "COLUMN_NAME" => "created_at",
