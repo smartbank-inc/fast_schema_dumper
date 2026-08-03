@@ -607,7 +607,7 @@ module FastSchemaDumper
         expression = part[:expression].gsub("\\'", "'")
         expression.start_with?("(") ? expression : "(#{expression})"
       else
-        quoted = "`#{part[:column]}`"
+        quoted = "`#{part[:column].gsub("`", "``")}`"
         quoted += "(#{part[:sub_part]})" if part[:sub_part]
         quoted
       end

@@ -112,6 +112,19 @@ class FormatIndexTest < Minitest::Test
     assert_equal('t.index "(lower(`name`)), `bio`(10)", name: "index_on_lower_name_and_bio"', actual)
   end
 
+  def test_expression_index_escapes_backticks_in_plain_column
+    index_data = {
+      columns: ["display`name"],
+      parts: [
+        {expression: "lower(`name`)", desc: false},
+        {column: "display`name", sub_part: nil, desc: false}
+      ],
+      unique: false, orders: {}, comment: ""
+    }
+    actual = @dumper.send(:format_index, "index_on_lower_name_and_display_name", index_data)
+    assert_equal('t.index "(lower(`name`)), `display``name`", name: "index_on_lower_name_and_display_name"', actual)
+  end
+
   def test_expression_index_with_comment
     index_data = {
       columns: [],

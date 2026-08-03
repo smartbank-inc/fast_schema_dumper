@@ -286,18 +286,20 @@ class FastSchemaDumperTest < Minitest::Test
     end
   end
 
-  def test_dump_matches_active_record_for_functional_indexes
+  def test_dump_matches_active_record_for_index_lines
     active_record_output = dump_active_record_schema
     fast_output = dump_schema
 
-    expected = index_lines_for(active_record_output, "events")
-    actual = index_lines_for(fast_output, "events")
+    TABLES.each do |table|
+      expected = index_lines_for(active_record_output, table)
+      actual = index_lines_for(fast_output, table)
 
-    assert_equal expected, actual, <<~MSG
-      Expected functional index lines for events to match ActiveRecord::SchemaDumper output
-      expected: #{expected.inspect}
-      actual:   #{actual.inspect}
-    MSG
+      assert_equal expected, actual, <<~MSG
+        Expected index lines for #{table} to match ActiveRecord::SchemaDumper output
+        expected: #{expected.inspect}
+        actual:   #{actual.inspect}
+      MSG
+    end
   end
 
   private
