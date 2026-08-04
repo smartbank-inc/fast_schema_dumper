@@ -9,7 +9,7 @@ class FastSchemaDumperTest < Minitest::Test
   ].freeze
 
   TABLES = %w[
-    users posts comments profiles products
+    users posts comments profiles products events
   ].freeze
 
   def setup
@@ -91,6 +91,21 @@ class FastSchemaDumperTest < Minitest::Test
         CONSTRAINT chk_products_quantity CHECK (quantity >= 0)
       ) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci COMMENT='Product catalog'
     SQL
+
+    @conn.execute <<~SQL
+      CREATE TABLE events (
+        id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(100) NOT NULL,
+        payload JSON,
+        starts_at DATETIME,
+        status TINYINT NOT NULL DEFAULT 0,
+        UNIQUE INDEX index_events_on_name_when_active ((CASE WHEN status = 1 THEN name END)),
+        INDEX index_events_on_lower_name ((LOWER(name))),
+        UNIQUE INDEX index_events_on_month_and_name ((MONTH(starts_at)) DESC, name),
+        INDEX index_events_on_payload_type ((CAST(payload->>'$.type' AS CHAR(10)))),
+        INDEX index_events_on_name (name)
+      ) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci
+    SQL
   end
 
   def teardown
@@ -146,6 +161,38 @@ class FastSchemaDumperTest < Minitest::Test
     assert_includes(output, 't.index ["email"], name: "index_users_on_email", unique: true')
     # compound index
     assert_includes(output, 't.index ["name", "age"], name: "index_users_on_name_and_age"')
+  end
+
+  def test_dump_functional_indexes
+    output = dump_schema
+
+    # single expression index
+    assert_includes(output, 't.index "(lower(`name`))", name: "index_events_on_lower_name"')
+    # mixed expression + plain column, DESC inlined into the string, no order: option
+    assert_includes(output, 't.index "(month(`starts_at`)) DESC, `name`", name: "index_events_on_month_and_name", unique: true')
+    # CASE WHEN expression used as a partial-index equivalent
+    assert_includes(output, 't.index "(case when (`status` = 1) then `name` end)", name: "index_events_on_name_when_active", unique: true')
+    # plain index on the same table keeps array format
+    assert_includes(output, 't.index ["name"], name: "index_events_on_name"')
+  end
+
+  def test_functional_index_lines_are_sorted_like_active_record
+    output = dump_schema
+    table_block = output[/^\s*create_table "events".*?^\s*end$/m]
+    index_lines = table_block.lines.map(&:strip).select { |line| line.start_with?("t.index") }
+
+    # Rails sorts formatted index statements as strings, so string-form
+    # (expression) indexes come before array-form indexes
+    assert_equal(
+      [
+        't.index "(case when (`status` = 1) then `name` end)", name: "index_events_on_name_when_active", unique: true',
+        't.index "(cast(json_unquote(json_extract(`payload`,_utf8mb4\'$.type\')) as char(10) charset utf8mb4))", name: "index_events_on_payload_type"',
+        't.index "(lower(`name`))", name: "index_events_on_lower_name"',
+        't.index "(month(`starts_at`)) DESC, `name`", name: "index_events_on_month_and_name", unique: true',
+        't.index ["name"], name: "index_events_on_name"'
+      ],
+      index_lines
+    )
   end
 
   def test_dump_foreign_keys
@@ -239,6 +286,22 @@ class FastSchemaDumperTest < Minitest::Test
     end
   end
 
+  def test_dump_matches_active_record_for_index_lines
+    active_record_output = dump_active_record_schema
+    fast_output = dump_schema
+
+    TABLES.each do |table|
+      expected = index_lines_for(active_record_output, table)
+      actual = index_lines_for(fast_output, table)
+
+      assert_equal expected, actual, <<~MSG
+        Expected index lines for #{table} to match ActiveRecord::SchemaDumper output
+        expected: #{expected.inspect}
+        actual:   #{actual.inspect}
+      MSG
+    end
+  end
+
   private
 
   def dump_schema
@@ -269,6 +332,13 @@ class FastSchemaDumperTest < Minitest::Test
     raise "Could not find column #{table_name}.#{column_name} in schema output" unless definition
 
     definition.strip
+  end
+
+  def index_lines_for(output, table_name)
+    table_block = output[/^\s*create_table "#{table_name}".*?^\s*end$/m]
+    raise "Could not find table #{table_name} in schema output" unless table_block
+
+    table_block.lines.map(&:strip).select { |line| line.start_with?("t.index") }
   end
 
   def create_internal_tables!

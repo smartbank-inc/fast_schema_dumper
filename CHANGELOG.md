@@ -1,5 +1,12 @@
 ## [Unreleased]
 
+- Support MySQL functional indexes (e.g. `INDEX ((LOWER(name)))`). Indexes
+  containing expression parts are now dumped as a single string column, matching
+  `ActiveRecord::SchemaDumper` output. Requires MySQL 8.0.13+; older versions
+  fall back to the previous behavior.
+- Index lines are now sorted by the formatted statement string, matching
+  `ActiveRecord::SchemaDumper` ordering exactly.
+
 ## [0.5.3] - 2026-05-18
 
 - Add limit handling for binary/varbinary columns in format_column. [#39](https://github.com/smartbank-inc/fast_schema_dumper/pull/39)

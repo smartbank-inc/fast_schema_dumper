@@ -49,6 +49,16 @@ module FastSchemaDumper
     ")
 
       # Get all indexes
+      # INFORMATION_SCHEMA.STATISTICS.EXPRESSION exists only in MySQL 8.0.13+
+      result = conn.exec_query("
+      SELECT COUNT(*) as count
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE TABLE_SCHEMA = 'information_schema'
+        AND TABLE_NAME = 'STATISTICS'
+        AND COLUMN_NAME = 'EXPRESSION'
+    ")
+      expression_column = (result.first['count'] > 0) ? "s.EXPRESSION," : ""
+
       indexes_data = conn.exec_query("
       SELECT
         s.TABLE_NAME,
@@ -56,6 +66,8 @@ module FastSchemaDumper
         s.NON_UNIQUE,
         s.COLUMN_NAME,
         s.SEQ_IN_INDEX,
+        s.SUB_PART,
+        #{expression_column}
         s.INDEX_COMMENT,
         s.COLLATION
       FROM INFORMATION_SCHEMA.STATISTICS s
@@ -69,6 +81,7 @@ module FastSchemaDumper
         hash[idx['TABLE_NAME']] ||= {}
         hash[idx['TABLE_NAME']][idx['INDEX_NAME']] ||= {
           columns: [],
+          parts: [],
           unique: idx['NON_UNIQUE'] == 0,
           # length
           orders: {},
@@ -81,10 +94,22 @@ module FastSchemaDumper
           comment: idx['INDEX_COMMENT']
           # enabled
         }
-        hash[idx['TABLE_NAME']][idx['INDEX_NAME']][:columns] << idx['COLUMN_NAME']
-        # Track descending order columns (COLLATION = 'D')
-        if idx['COLLATION'] == 'D'
-          hash[idx['TABLE_NAME']][idx['INDEX_NAME']][:orders][idx['COLUMN_NAME']] = :desc
+        index = hash[idx['TABLE_NAME']][idx['INDEX_NAME']]
+        desc = idx['COLLATION'] == 'D'
+
+        # Functional index parts (MySQL 8.0.13+) have COLUMN_NAME = NULL and the
+        # expression in EXPRESSION
+        if idx['EXPRESSION']
+          index[:parts] << {expression: idx['EXPRESSION'], desc:}
+        else
+          # :columns/:orders are for expression-free indexes.
+          index[:columns] << idx['COLUMN_NAME']
+          # Track descending order columns (COLLATION = 'D')
+          index[:orders][idx['COLUMN_NAME']] = :desc if desc
+
+          # Also keep the part in :parts so mixed indexes like
+          # ((MONTH(starts_at)) DESC, name) can be rebuilt from :parts alone.
+          index[:parts] << {column: idx['COLUMN_NAME'], sub_part: idx['SUB_PART'], desc:}
         end
       end
 
@@ -314,21 +339,12 @@ module FastSchemaDumper
       end
 
       # Indexes
-      # Rails orders indexes lexicographically by their column arrays
-      # Example: ["a", "b"] < ["a"] < ["b", "c"] < ["b"] < ["d"]
-      sorted_indexes = indexes.except('PRIMARY').sort_by do |index_name, index_data|
-        # Create an array padded with high values for comparison
-        # This ensures that missing columns sort after existing ones
-        max_cols = indexes.values.map { |data| data[:columns].size }.max || 1
-        cols = index_data[:columns].dup
-        # Pad with a string that sorts after any real column name
-        cols += ["\xFF" * 100] * (max_cols - cols.size)
-        cols
+      # Rails sorts the formatted index statements as strings
+      # ref: activerecord: lib/active_record/schema_dumper.rb#indexes_in_create
+      index_lines = indexes.except('PRIMARY').map do |index_name, index_data|
+        "  #{format_index(index_name, index_data)}"
       end
-
-      sorted_indexes.each do |index_name, index_data|
-        @output << "  #{format_index(index_name, index_data)}"
-      end
+      @output.concat(index_lines.sort)
 
       # Respect the CHECK constraint
       #
@@ -525,6 +541,11 @@ module FastSchemaDumper
     end
 
     def format_index(index_name, index_data)
+      parts = index_data[:parts] || []
+      if parts.any? { |part| part[:expression] }
+        return format_expression_index(index_name, index_data)
+      end
+
       idx_def = "t.index "
 
       idx_def += if index_data[:columns].size == 1
@@ -561,6 +582,37 @@ module FastSchemaDumper
       end
 
       idx_def
+    end
+
+    # Rails dumps indexes containing expression parts with a single string
+    # instead of a column name array. DESC and prefix lengths are inlined
+    # into the string, so no order:/length: options are emitted.
+    # ref: activerecord: lib/active_record/connection_adapters/mysql/schema_statements.rb#indexes
+    def format_expression_index(index_name, index_data)
+      columns_string = index_data[:parts].map { |part| format_index_part(part) }.join(", ")
+
+      idx_def = "t.index #{columns_string.inspect}"
+      idx_def += ", name: \"#{index_name}\""
+      idx_def += ", unique: true" if index_data[:unique]
+
+      if index_data[:comment] && !index_data[:comment].empty?
+        idx_def += ", comment: \"#{escape_string(index_data[:comment])}\""
+      end
+
+      idx_def
+    end
+
+    def format_index_part(part)
+      str = if part[:expression]
+        expression = part[:expression].gsub("\\'", "'")
+        expression.start_with?("(") ? expression : "(#{expression})"
+      else
+        quoted = "`#{part[:column].gsub("`", "``")}`"
+        quoted += "(#{part[:sub_part]})" if part[:sub_part]
+        quoted
+      end
+      str += " DESC" if part[:desc]
+      str
     end
 
     def balanced_parentheses?(str)
