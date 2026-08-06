@@ -316,14 +316,8 @@ class FastSchemaDumperTest < Minitest::Test
 
   def dump_active_record_schema
     stream = StringIO.new
-    connection_or_pool = if ActiveRecord.gem_version < Gem::Version.new("7.2.0")
-      ActiveRecord::Base.connection
-    else
-      ActiveRecord::Base.connection_pool
-    end
-
     ActiveRecord::SchemaDumper.dump(
-      connection_or_pool,
+      ActiveRecord::Base.connection_pool,
       stream,
       ActiveRecord::Base
     )

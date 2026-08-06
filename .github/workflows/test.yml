@@ -14,8 +14,6 @@ jobs:
       matrix:
         ruby-version: ["3.2", "3.3", "3.4", "4.0"]
         activerecord:
-          - version: "7.1"
-            gemfile: activerecord_7_1
           - version: "7.2"
             gemfile: activerecord_7_2
           - version: "8.0"
