@@ -5,6 +5,7 @@ source 'https://rubygems.org'
 # Specify your gem's dependencies in fast_schema_dumper.gemspec
 gemspec
 
+gem "appraisal"
 gem "irb"
 gem 'minitest'
 gem "rake", "~> 13.0"

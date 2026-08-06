@@ -7,10 +7,23 @@ on:
 
 jobs:
   test:
+    name: Ruby ${{ matrix.ruby-version }} / Active Record ${{ matrix.activerecord.version }}
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         ruby-version: ["3.2", "3.3", "3.4", "4.0"]
+        activerecord:
+          - version: "7.1"
+            gemfile: activerecord_7_1
+          - version: "7.2"
+            gemfile: activerecord_7_2
+          - version: "8.0"
+            gemfile: activerecord_8_0
+          - version: "8.1"
+            gemfile: activerecord_8_1
+    env:
+      BUNDLE_GEMFILE: ${{ github.workspace }}/gemfiles/${{ matrix.activerecord.gemfile }}.gemfile
     services:
       mysql:
         image: mysql:8.0
