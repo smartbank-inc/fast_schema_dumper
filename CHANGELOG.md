@@ -1,5 +1,8 @@
 ## [Unreleased]
 
+- Require Active Record 7.2 or later. [#57](https://github.com/smartbank-inc/fast_schema_dumper/pull/57)
+- Test against Active Record 7.2, 8.0 and 8.1 in CI. [#57](https://github.com/smartbank-inc/fast_schema_dumper/pull/57)
+
 ## [0.5.4] - 2026-08-04
 
 - Support MySQL functional indexes (e.g. `INDEX ((LOWER(name)))`). Indexes
