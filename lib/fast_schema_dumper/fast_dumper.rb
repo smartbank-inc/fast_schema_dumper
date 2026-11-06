@@ -435,6 +435,15 @@ module FastSchemaDumper
       # null
       col_def += ", null: false" if column['IS_NULLABLE'] == 'NO'
 
+      # collation
+      if column['COLLATION_NAME'] && column['DATA_TYPE'] =~ /char|text/
+        # Check if it's different from the table's default collation
+        # For now, just check if it's utf8mb4_bin which seems to be the special case
+        if column['COLLATION_NAME'] == 'utf8mb4_bin'
+          col_def += ", collation: \"#{column['COLLATION_NAME']}\""
+        end
+      end
+
       # comment
       if column['COLUMN_COMMENT'] && !column['COLUMN_COMMENT'].empty?
         col_def += ", comment: \"#{escape_string(column['COLUMN_COMMENT'])}\""
@@ -443,15 +452,6 @@ module FastSchemaDumper
       # unsigned
       if column['COLUMN_TYPE'].include?('unsigned')
         col_def += ", unsigned: true"
-      end
-
-      # collation
-      if column['COLLATION_NAME'] && column['DATA_TYPE'] =~ /char|text/
-        # Check if it's different from the table's default collation
-        # For now, just check if it's utf8mb4_bin which seems to be the special case
-        if column['COLLATION_NAME'] == 'utf8mb4_bin'
-          col_def += ", collation: \"#{column['COLLATION_NAME']}\""
-        end
       end
 
       col_def

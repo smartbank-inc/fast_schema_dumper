@@ -34,6 +34,7 @@ class FastSchemaDumperTest < Minitest::Test
         born_on DATE,
         login_at DATETIME,
         preferences VARCHAR(255) COLLATE utf8mb4_bin,
+        activation_code VARCHAR(32) COLLATE utf8mb4_bin NOT NULL COMMENT 'Activation code',
         created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
         UNIQUE INDEX index_users_on_email (email),
@@ -147,6 +148,11 @@ class FastSchemaDumperTest < Minitest::Test
   def test_dump_collation
     output = dump_schema
     assert_includes(output, 't.string "preferences", collation: "utf8mb4_bin"')
+  end
+
+  def test_dump_collation_with_comment
+    output = dump_schema
+    assert_includes(output, 't.string "activation_code", limit: 32, null: false, collation: "utf8mb4_bin", comment: "Activation code"')
   end
 
   def test_dump_table_options
@@ -284,6 +290,17 @@ class FastSchemaDumperTest < Minitest::Test
         actual:   #{actual.inspect}
       MSG
     end
+  end
+
+  def test_dump_matches_active_record_for_collation_and_comment_column_definition
+    expected = column_definition_for(dump_active_record_schema, "users", "activation_code")
+    actual = column_definition_for(dump_schema, "users", "activation_code")
+
+    assert_equal expected, actual, <<~MSG
+      Expected users.activation_code to match ActiveRecord::SchemaDumper output
+      expected: #{expected.inspect}
+      actual:   #{actual.inspect}
+    MSG
   end
 
   def test_dump_matches_active_record_for_index_lines
