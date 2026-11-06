@@ -187,6 +187,22 @@ class FormatColumnTest < Minitest::Test
     assert_equal('t.string "name", collation: "utf8mb4_bin"', actual)
   end
 
+  def test_utf8mb4_bin_collation_with_comment_matches_rails_order
+    column = base_column(
+      "COLUMN_NAME" => "code",
+      "COLUMN_TYPE" => "varchar(32)",
+      "CHARACTER_MAXIMUM_LENGTH" => 32,
+      "IS_NULLABLE" => "NO",
+      "COLUMN_COMMENT" => "activation code",
+      "COLLATION_NAME" => "utf8mb4_bin"
+    )
+    actual = @dumper.send(:format_column, column)
+    assert_equal(
+      't.string "code", limit: 32, null: false, collation: "utf8mb4_bin", comment: "activation code"',
+      actual
+    )
+  end
+
   def test_format_generated_column
     column = base_column(
       "COLUMN_NAME" => "active_unique_key",
