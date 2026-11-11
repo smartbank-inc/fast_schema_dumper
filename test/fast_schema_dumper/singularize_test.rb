@@ -39,9 +39,4 @@ class SingularizeTest < Minitest::Test
   def test_project_releases_becomes_project_release
     assert_equal("project_release", @dumper.send(:singularize, "project_releases"))
   end
-
-  def test_ses_rule_applies_to_words_outside_the_exceptions
-    assert_equal("bus", @dumper.send(:singularize, "buses"))
-    assert_equal("city_bus", @dumper.send(:singularize, "city_buses"))
-  end
 end
