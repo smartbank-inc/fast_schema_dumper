@@ -31,4 +31,32 @@ class SingularizeTest < Minitest::Test
   def test_addresses_becomes_address
     assert_equal("address", @dumper.send(:singularize, "addresses"))
   end
+
+  def test_plural_exceptions_ending_in_ses
+    {
+      "bases" => "base",
+      "cases" => "case",
+      "clauses" => "clause",
+      "databases" => "database",
+      "licenses" => "license",
+      "phrases" => "phrase",
+      "premises" => "premise",
+      "purposes" => "purpose",
+      "releases" => "release",
+      "responses" => "response",
+      "reuses" => "reuse",
+      "reverses" => "reverse",
+      "showcases" => "showcase",
+      "subcases" => "subcase",
+      "uses" => "use"
+    }.each do |plural, singular|
+      assert_equal(singular, @dumper.send(:singularize, plural), plural)
+      assert_equal("project_#{singular}", @dumper.send(:singularize, "project_#{plural}"), "project_#{plural}")
+    end
+  end
+
+  def test_ses_rule_applies_to_words_outside_the_exceptions
+    assert_equal("bus", @dumper.send(:singularize, "buses"))
+    assert_equal("city_bus", @dumper.send(:singularize, "city_buses"))
+  end
 end
