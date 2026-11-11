@@ -268,6 +268,13 @@ module FastSchemaDumper
         'news'  # news is both singular and plural
       when /ies$/
         str.sub(/ies$/, 'y')
+      when /(?:\A|_)(?:
+        abuses|bases|cases|causes|clauses|closes|databases|defenses|
+        excuses|expenses|increases|lapses|licenses|misuses|noises|offenses|
+        overdoses|pauses|phases|phrases|premises|promises|pulses|purchases|
+        purposes|raises|releases|responses|reuses|reverses|showcases|subcases|uses
+      )\z/x
+        str.sub(/s\z/, '')
       when /ses$/
         str.sub(/es$/, '')
       when /s$/

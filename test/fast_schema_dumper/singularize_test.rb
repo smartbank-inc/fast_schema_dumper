@@ -31,4 +31,12 @@ class SingularizeTest < Minitest::Test
   def test_addresses_becomes_address
     assert_equal("address", @dumper.send(:singularize, "addresses"))
   end
+
+  def test_releases_becomes_release
+    assert_equal("release", @dumper.send(:singularize, "releases"))
+  end
+
+  def test_project_releases_becomes_project_release
+    assert_equal("project_release", @dumper.send(:singularize, "project_releases"))
+  end
 end
