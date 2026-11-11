@@ -1,5 +1,10 @@
 ## [Unreleased]
 
+## [0.5.6] - 2026-11-11
+
+- Fix foreign key column inference for table names ending in common plurals
+  such as `releases`, `databases`, and `purchases`. [#67](https://github.com/smartbank-inc/fast_schema_dumper/pull/67)
+
 ## [0.5.5] - 2026-11-06
 
 - Require Active Record 7.2 or later. [#57](https://github.com/smartbank-inc/fast_schema_dumper/pull/57)
