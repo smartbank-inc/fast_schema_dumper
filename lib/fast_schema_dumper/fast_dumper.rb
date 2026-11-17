@@ -1,5 +1,6 @@
 require 'json'
 require 'bigdecimal'
+require 'active_support/core_ext/string/inflections'
 
 module FastSchemaDumper
   class SchemaDumper
@@ -237,7 +238,7 @@ module FastSchemaDumper
         # For simple cases: "users" -> "user_id"
         # But it also handles more complex cases
 
-        inferred_column = "#{singularize(fk[:fk_data][:referenced_table])}_id"
+        inferred_column = "#{fk[:fk_data][:referenced_table].singularize}_id"
 
         # Check if column name matches what Rails would infer
         if fk[:fk_data][:column] != inferred_column
@@ -259,29 +260,6 @@ module FastSchemaDumper
 
     def escape_string(str)
       str.gsub("\\", "\\\\\\\\").gsub('"', '\"').gsub("\n", "\\n").gsub("\r", "\\r").gsub("\t", "\\t")
-    end
-
-    def singularize(str)
-      # Simple singularization rules
-      case str
-      when 'news'
-        'news'  # news is both singular and plural
-      when /ies$/
-        str.sub(/ies$/, 'y')
-      when /(?:\A|_)(?:
-        abuses|bases|cases|causes|clauses|closes|databases|defenses|
-        excuses|expenses|increases|lapses|licenses|misuses|noises|offenses|
-        overdoses|pauses|phases|phrases|premises|promises|pulses|purchases|
-        purposes|raises|releases|responses|reuses|reverses|showcases|subcases|uses
-      )\z/x
-        str.sub(/s\z/, '')
-      when /ses$/
-        str.sub(/es$/, '')
-      when /s$/
-        str.sub(/s$/, '')
-      else
-        str
-      end
     end
 
     def dump_table(table_name, columns:, indexes:, check_constraints:, options:)
